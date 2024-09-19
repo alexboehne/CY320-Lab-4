@@ -11,8 +11,8 @@ def get_hashed_password(plain_text_password): # hashes password
 def check_password(plain_text_password, hashed_password): # checks password against stored
     return bcrypt.checkpw(plain_text_password, hashed_password)
 
-def keygen(input):
-    key = input.upper()  # uppercase string from input box
+def keygen(key_input):
+    key = key_input.upper()  # uppercase string from input box
     key = re.sub(r'[^a-zA-Z]', 'B', key)  # remove non-alpha characters
 
     if len(key) < 16:
@@ -64,12 +64,23 @@ def main():
                 for line in file:
                     new_check = line.strip().encode('utf-8') # strips/encodes password
                     try:
-                        if check_password(check, new_check):
-                            window['-OUTPUT-'].update(" ")
-                            print("A")
-                            break # add the qr code confirmation popup HERE !!!
+                        if check_password(check, new_check): # check if password matches stored hashes
+                            window['-OUTPUT-'].update(" ") # clears error output label
+                            test_otp = pyotp.totp.TOTP(keygen(values['-INPUT-'])) # gets auth code object
+
+                            # For testing if OTP code associated with password is correct
+                            # print(test_otp.now())
+
+                            code = pg.popup_get_text("Enter your 2FA authenticator code") # popup prompt
+
+                            if int(code) == int(test_otp.now()):
+                                pg.popup_ok("Authentication successful! :D")
+                            else:
+                                pg.popup_ok("Authentication failed - please try again")
+                            break
                         else: # incorrect password
                             window['-OUTPUT-'].update("Incorrect password!")
+
                     except ValueError: # sometimes throws if salt gets freaky, usually incorrect password
                         pass
 
@@ -79,8 +90,9 @@ def main():
 
             uri = pyotp.totp.TOTP(qr_key).provisioning_uri(name="Authorized User",
                                                         issuer_name="Admin")
-
             qrcode.make(uri).save("qr.png")
+            # qr popup
+            pg.popup_no_buttons(title='Über uns', keep_on_top=True, image="qr.png")
 
 if __name__ == '__main__':
     main()
