@@ -45,7 +45,6 @@ def main():
                        size=(400, 300),
                        element_justification="center")
 
-
     # runs the pysimplegui window
     while True:
         event, values = window.read()
@@ -87,7 +86,9 @@ def main():
                                 incorrect_guesses += 1
 
                         except ValueError: # sometimes throws if salt gets freaky, usually incorrect password
-                            pass
+                            window['-OUTPUT-'].update("Incorrect password!")
+                            incorrect_guesses += 1
+
             else: # if you have exceeded 3 incorrect guesses
                 pg.popup_annoying("You have exceeded the maximum number of attempts. Please wait 2 minutes for new attempts to login.")
                 if timeout_end == " ": # set timer if not already set
@@ -107,7 +108,7 @@ def main():
                                                         issuer_name="Admin")
             qrcode.make(uri).save("qr.png")
             # qr popup
-            pg.popup_no_buttons(title='Über uns', keep_on_top=True, image="qr.png")
+            pg.popup_no_buttons(title="Scan QR Code", keep_on_top=True, image="qr.png")
 
 if __name__ == '__main__':
     main()
